@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+	http://www.springframework.org/schema/data/jpa 
+	http://www.springframework.org/schema/data/jpa/spring-jpa-1.2.xsd
+    http://www.springframework.org/schema/cache 
+    http://www.springframework.org/schema/cache/spring-cache-3.1.xsd
+    http://www.springframework.org/schema/task  
+	http://www.springframework.org/schema/task/spring-task-3.1.xsd 
+	">
+
+
+
+
+
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:config.properties</value>
+			</list>
+		</property>
+	</bean>
+
+
+
+	<context:component-scan base-package="com.ssxt.job" />
+	
+	<!-- 	<context:component-scan base-package="com.ssxt.dao" />
+	<context:component-scan base-package="com.ssxt.service" />
+	<context:component-scan base-package="common.dao" />
+	<context:component-scan base-package="common.service" />
+	<context:component-scan base-package="common.util" /> -->
+
+
+	<bean id="scheduler" lazy-init="false" autowire="no"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean" />
+
+	<bean id="lobHandler" class="org.springframework.jdbc.support.lob.DefaultLobHandler"
+		lazy-init="true" />
+
+
+
+	<bean id="mySqlDataSource" class="com.alibaba.druid.pool.DruidDataSource"
+		init-method="init" destroy-method="close">
+		<!-- 基本属性 url、user、password -->
+		<property name="driverClassName" value="${mysql.driverClassName}" />
+		<property name="url" value="${mysql.url}" />
+		<property name="username" value="${mysql.username}" />
+		<property name="password" value="${mysql.password}" />
+
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="maxActive" value="50" />
+		<property name="initialSize" value="10" />
+		<property name="minIdle" value="5" />
+
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000" />
+
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />
+
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+
+		<property name="validationQuery" value="SELECT 'x'" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+
+		<!-- 打开PSCache，并且指定每个连接上PSCache的大小 -->
+		<property name="poolPreparedStatements" value="true" />
+		<property name="maxPoolPreparedStatementPerConnectionSize"
+			value="100" />
+	</bean>
+
+
+
+
+	<bean id="mySqlSessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="mySqlDataSource" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate3.SpringSessionContext
+				</prop>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.connection.autocommit">${hibernate.autocommit}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<!-- <prop key="hibernate.hbm2ddl.auto">create</prop> -->				<!-- <prop key="hibernate.hbm2ddl.auto">update</prop> -->
+				<!-- 是否格式化sql -->
+				<prop key="hibernate.format_sql">false</prop>
+				<!-- 是否使用注释 -->
+				<!-- <prop key="hibernate.use_sql_comments">${hibernate.show_sql}</prop> -->
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+			</props>
+		</property>
+		<!-- 注解 <property name="packagesToScan"> <list> <value>com.ssxt.rdbox.web.core.model</value> 
+			</list> </property> -->
+		<!-- 配置文件 -->
+		<property name="mappingDirectoryLocations">
+			<list>
+				<value>classpath:/com/ssxt/entity/mysql</value>
+			</list>
+		</property>
+	</bean>
+
+
+
+
+
+
+	<!-- hibernate Dao层模板 -->
+	<bean id="mySqlTemplate" class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory" ref="mySqlSessionFactory"></property>
+	</bean>
+
+
+
+	<bean id="transactionManagerMysql"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="mySqlSessionFactory" />
+	</bean>
+
+
+	<!-- 使用annotation定义事务，对于要加入事物的类，只需对该类加 @Transactional -->
+	<tx:annotation-driven transaction-manager="transactionManagerMysql" />
+
+
+</beans>

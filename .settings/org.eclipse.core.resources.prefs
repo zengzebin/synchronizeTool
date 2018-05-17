@@ -1,0 +1,9 @@
+eclipse.preferences.version=1
+encoding//src/main/java/com/ssxt/web=UTF-8
+encoding//src/main/java/common/http/HttpRequestUtil.java=UTF-8
+encoding//src/main/resources/config.properties=UTF-8
+encoding//src/main/resources/configure=UTF-8
+encoding//src/main/resources/configure/delete/st_pptn_r.properties=UTF-8
+encoding//src/main/resources/configure/demo.properties=UTF-8
+encoding//src/test/java/plug/testXml.java=UTF-8
+encoding/<project>=UTF-8
